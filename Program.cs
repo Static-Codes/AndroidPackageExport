@@ -22,6 +22,8 @@ foreach (var category in categories){
     packageCategoryInfo.Add(category, []);
 }
 
+var finalFilePath = Path.Combine(Environment.CurrentDirectory, "packages.json");
+
 try 
 {
     for (int i = 0; i < packages.Count; i++) {
@@ -31,7 +33,7 @@ try
 
     var objectBytes = JsonSerializer.SerializeToUtf8Bytes(packageCategoryInfo);
 
-    var stream = new FileStream("packages.json", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+    var stream = new FileStream(finalFilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite);
 
     await stream.WriteAsync(objectBytes);
 }
@@ -40,3 +42,6 @@ catch (Exception ex) {
     Console.WriteLine("Unable to complete the operation.");
     throw new Exception(ex.Message);
 }
+
+
+Console.WriteLine($"Package list written to: {finalFilePath}");
