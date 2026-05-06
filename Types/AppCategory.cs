@@ -1,4 +1,4 @@
-namespace AndroidAppLister.Types;
+namespace AndroidPackageExport.Types;
 
 public enum AppCategory
 {

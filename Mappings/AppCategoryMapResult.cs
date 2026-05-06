@@ -1,7 +1,6 @@
-using AndroidAppLister.Types;
+namespace AndroidPackageExport.Mappings;
 
-namespace AndroidAppLister.Mapping;
-
+using AndroidPackageExport.Types;
 public struct AppCategoryMapping
 {
     public AppCategory Result { get; set; }
