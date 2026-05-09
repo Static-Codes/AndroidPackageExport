@@ -1,6 +1,6 @@
-namespace AndroidPackageExport.Types;
+namespace AndroidPackageExport.Core.Types.Packaging;
 
-public enum AppCategory
+public enum PackageCategory
 {
     Application,
     Commercial,
