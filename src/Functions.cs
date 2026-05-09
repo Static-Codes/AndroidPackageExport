@@ -253,7 +253,7 @@ public class Functions
                 packageCategoryInfo[packageCategory].Add(packageName);
             }
 
-            WriteInformation($"Parsed {packageCategoryInfo.Count} packages.");
+            WriteSuccessMessage($"Parsed {packageCategoryInfo.Values.Count} packages.");
         }
 
         catch (Exception ex) {
