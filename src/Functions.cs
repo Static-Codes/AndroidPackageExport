@@ -5,6 +5,7 @@ using AndroidPackageExport.Core.Types.ADB;
 using AndroidPackageExport.Core.Types.ADB.Wireless;
 using AndroidPackageExport.Core.Types.Packaging;
 using static AndroidPackageExport.Core.Common.InputValidation;
+using static AndroidPackageExport.Core.Common.RegexPatterns;
 using static AndroidPackageExport.Core.Helpers.InputHelper;
 using static AndroidPackageExport.Core.Helpers.PSIHelper;
 using static AndroidPackageExport.Global.Constants;
@@ -22,14 +23,8 @@ public class Functions
         return File.Exists(ADBPath);
     }
 
-    private static async Task<(bool connected, List<string> output, List<string> error)> CheckForDeviceConnection(string? ip = null, string? port = null) 
+    public static async Task<ConnectionStatus> CheckForDeviceConnection() 
     {
-        string? address = null;
-
-        if (ip != null && port != null) {
-            address = $"{ip}:{port}";
-        }
-
         var psi = GetDeviceCheckPSI();
 
         var processResult = await RunProcessAsync(psi);
@@ -43,14 +38,13 @@ public class Functions
             foreach (var line in processResult.error) { WriteDebugMessage(line); }
         #endif
 
-        var desiredSubstring = string.IsNullOrEmpty(address) switch {
-            true => "      device",
-            false => $"{address}      device"
-        };
+        return DoDeviceConnectionRegex(processResult);
+    }
+    
+    private static ConnectionStatus DoDeviceConnectionRegex(ProcessResult connectionResult) 
+    {   
 
-        var devicesFound = processResult.output.Select(line => line.Contains(desiredSubstring));
-
-        if (processResult.exitCode != 0 || !devicesFound.Any()) 
+        if (connectionResult.output.Count == 0)
         {
             WriteInformation(ConnectionSection);
             WriteErrorMessage(
@@ -60,9 +54,67 @@ public class Functions
             );
         }
 
-        return (true, processResult.output, processResult.error);
+        var connectionGroups = connectionResult.output
+            .Where(line => line != "List of devices attached")
+            .SelectMany(line => ConnectionRegex().Matches(line))
+            .Where(match => match.Success)
+            .Select(match => match.Groups);
+
+        
+        if (!connectionGroups.Any()) 
+        {
+            return new ConnectionStatus(
+                Connected: false, 
+                Method: null,
+                Result: connectionResult
+            );
+        }
+
+        var captureGroups = connectionGroups.SelectMany(group => group.Values);
+
+        // Capture Groups Legend/Key (Pulled from RegexPatterns.ConnectionRegex())
+        // Index 0 -> Full line associated with the match. 
+        // Index 1 -> "device_id"
+        // Index 2 -> "ip
+        // Index 3 -> "port"
+
+        var usbConnection = captureGroups.ElementAt(1).Success;
+        
+        var wifiConnection = captureGroups.ElementAt(2).Success && 
+                             captureGroups.ElementAt(3).Success;
+
+        if (usbConnection) 
+        {
+            var deviceID = captureGroups.ElementAt(1).Captures[0].Value;
+            return new (
+                Connected: true, 
+                Method: ConnectionMethod.USB,
+                Result: connectionResult,
+                Identifier: deviceID
+            );
+        }
+
+        if (wifiConnection) 
+        {   
+            var deviceIP = captureGroups.ElementAt(2).Captures[0].Value;
+            var debugPort = captureGroups.ElementAt(3).Captures[0].Value;
+
+            var deviceAddress = $"{deviceIP}:{debugPort}";
+
+            return new (
+                Connected: true, 
+                Method: ConnectionMethod.WIFI,
+                Result: connectionResult,
+                Identifier: deviceAddress
+            );
+        }
+
+        return new ConnectionStatus(
+            Connected: false, 
+            Method: null,
+            Result: connectionResult
+        );
     }
-    
 
     private static async Task<(Device device, ProcessResult packageRetrievalResult)> GetPackagesOverUSB(Device device) 
     {
@@ -71,9 +123,9 @@ public class Functions
             Environment.Exit(1);
         }
 
-        var (connectionMade, _, _) = await CheckForDeviceConnection();
+        var connectionStatus = await CheckForDeviceConnection();
 
-        if (!connectionMade) {
+        if (!connectionStatus.Connected) {
             WriteErrorMessage(
                 message: $"No connected devices were detected.\n\n{ConnectionSection}",
                 exit: true,
@@ -81,6 +133,7 @@ public class Functions
             );
         }
 
+        device.ID = connectionStatus.Identifier; 
         var processResult = await RunProcessAsync(psi: GetPackageListPSI());
 
         if (processResult.exception != null) {
@@ -134,12 +187,12 @@ public class Functions
 
         # region Connection Operations
 
-        var (_, port) = PromptForConnectionInfo(deviceIP);
+        var (_, debugPort) = PromptForConnectionInfo(deviceIP);
 
-        WriteInformation($"Attempting to connect the current system to device using address: {deviceIP}:{port}");
+        WriteInformation($"Attempting to connect the current system to device using address: {deviceIP}:{debugPort}");
 
         var connectionProcess = await RunProcessAsync(
-            psi: GetDeviceConnectionPSI(deviceIP, port)
+            psi: GetDeviceConnectionPSI(deviceIP, debugPort)
         );
 
         if (connectionProcess.exitCode != 0) {
@@ -154,9 +207,9 @@ public class Functions
         WriteInformation("Waiting five seconds for any remaining ADB requests to process.");
         await Task.Delay(5000);
 
-        var (connectionMade, _, _) = await CheckForDeviceConnection(deviceIP, port);
+        var connectionStatus = await CheckForDeviceConnection();
 
-        if (!connectionMade) 
+        if (!connectionStatus.Connected) 
         {
             WriteWarningMessage("Unable to connect the current system to the device at the specified address.");
             WriteErrorMessage(
@@ -166,9 +219,11 @@ public class Functions
             );
         }
 
+        device.ID = connectionStatus.Identifier;
+        device.ConnectionStatus = connectionStatus;
 
 
-        WriteSuccessMessage($"Connected to a device at {deviceIP}:{port}");
+        WriteSuccessMessage($"Connected to a device at {deviceIP}:{debugPort}");
         WriteWarningMessage(
             "If you didn't receive a notification that wireless debugging was connected, please clear the pairing and try again."
         );
@@ -210,7 +265,7 @@ public class Functions
     /// </summary>
     public static async Task<(Device device, ProcessResult packageRetrievalResult)> RunPackageRetrieval(Device device) 
     {
-        return device.ConnectionMethod switch {
+        return device.ConnectionStatus.Method switch {
             ConnectionMethod.USB => await GetPackagesOverUSB(device),
             ConnectionMethod.WIFI => await GetPackagesOverWIFI(device),
             _ => throw new InvalidOperationException("Invalid connection method selected, please try again.")
@@ -253,7 +308,7 @@ public class Functions
                 packageCategoryInfo[packageCategory].Add(packageName);
             }
 
-            WriteSuccessMessage($"Parsed {packageCategoryInfo.Values.Count} packages.");
+            WriteSuccessMessage($"Parsed {packageCategoryInfo.Values.Sum(category => category.Count)} packages.");
         }
 
         catch (Exception ex) {
@@ -382,56 +437,7 @@ public class Functions
 
         return new ProcessResult(output, error, exitCode, exception);
     }
-
-    public static async Task<ProcessResult> RunProcessSimpleAsync(
-        ProcessStartInfo psi 
-    )
-    {
-        List<string> output = [];
-        List<string> error = [];
-        
-        using Process process = new() { StartInfo = psi };
-
-        process.OutputDataReceived += (sender, e) => 
-        {
-            if (e.Data != null) 
-            {
-                lock (output) {
-                    output.Add(e.Data.Trim());
-                }
-            }
-        };
-
-        process.ErrorDataReceived += (sender, e) => 
-        {
-            if (e.Data != null) 
-            {
-                lock (error) {
-                    error.Add(e.Data.Trim());
-                }
-            }
-        };
-
-        Exception? exception = null;
-        uint exitCode = 0;
-
-        try 
-        {
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            await process.WaitForExitAsync();
-            exitCode = (uint)process.ExitCode;
-        }
-
-        catch (Exception ex) {
-            exception = ex;
-            exitCode = 1;
-        }
-
-        return new ProcessResult(output, error, exitCode, exception);
-    }
-
+    
     public static bool TryGetDeviceConnection() {
         return true;
     }

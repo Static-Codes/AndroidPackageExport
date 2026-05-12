@@ -6,7 +6,16 @@ using AndroidPackageExport.Core.Types;
 using AndroidPackageExport.Core.Types.ADB;
 using AndroidPackageExport.Core.Types.Packaging;
 using static AndroidPackageExport.Functions;
+using static AndroidPackageExport.Global.Logging;
 
+
+// var connectionStatus = await CheckForDeviceConnection();
+
+// Console.WriteLine($"Connected: {connectionStatus.Connected}");
+
+// if (connectionStatus.Result?.output != null) {
+//     foreach (var line in connectionStatus.Result.output) { WriteDebugMessage(line); }
+// }
 
 var device = new Device();
 ProcessResult? packageRetrievalResult;

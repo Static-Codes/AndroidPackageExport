@@ -5,7 +5,7 @@ using AndroidPackageExport.Core.Types.ADB.Wireless;
 using AndroidPackageExport.Core.Types.Versioning;
 using static AndroidPackageExport.Core.Helpers.InputHelper;
 
-public class Device(string Name = "Unknown", AndroidOSVersion AndroidOSVersion = AndroidOSVersion.UNKNOWN) 
+public class Device(string Name = "Unknown", AndroidOSVersion AndroidOSVersion = AndroidOSVersion.UNKNOWN, string? ID = null) 
 {
     public string Name { get; set; } = Name;
 
@@ -20,7 +20,12 @@ public class Device(string Name = "Unknown", AndroidOSVersion AndroidOSVersion =
     /// </summary>
     public int AndroidAPILevel { get; set; } = (int)AndroidOSVersion;
 
-    public ConnectionMethod ConnectionMethod { get; set; } = AskForConnectionMethod();
+    public ConnectionStatus ConnectionStatus { get; set; } = new(
+        Connected: false, 
+        Method: AskForConnectionMethod(), 
+        Result: null
+    );
+
     /// <summary>
     ///     Holds the Device IP, Pairing Port, and Pairing Code. (If WIFI pairing is used.)
     /// </summary>
@@ -28,7 +33,8 @@ public class Device(string Name = "Unknown", AndroidOSVersion AndroidOSVersion =
 
 
     /// <summary>
-    ///     
+    ///    The identifier associated with the Android device connected via USB. 
     /// </summary>
+    public string? ID { get; set; } = ID ?? "Unknown";
     
 }
