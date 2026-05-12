@@ -9,9 +9,9 @@ using static AndroidPackageExport.Functions;
 using static AndroidPackageExport.Global.Logging;
 
 
-// var connectionStatus = await CheckForDeviceConnection();
+var connectionStatus = await CheckForDeviceConnection();
 
-// Console.WriteLine($"Connected: {connectionStatus.Connected}");
+Console.WriteLine($"Connected: {connectionStatus.Connected}");
 
 // if (connectionStatus.Result?.output != null) {
 //     foreach (var line in connectionStatus.Result.output) { WriteDebugMessage(line); }
