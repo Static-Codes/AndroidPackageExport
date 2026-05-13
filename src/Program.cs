@@ -1,5 +1,4 @@
-﻿
-using System.Text.Json;
+﻿using System.Text.Json;
 using AndroidPackageExport.Core.Helpers;
 using AndroidPackageExport.Core.Mappings;
 using AndroidPackageExport.Core.Types;
@@ -37,9 +36,9 @@ try
 }
 
 catch (Exception ex) {
-    Console.WriteLine("Unable to complete the operation.");
+    WriteErrorMessage("Unable to complete the operation.");
     throw new Exception(ex.Message);
 }
 
 
-Console.WriteLine($"Package list written to: {finalFilePath}");
+WriteSuccessMessage($"Package list written to: {finalFilePath}");

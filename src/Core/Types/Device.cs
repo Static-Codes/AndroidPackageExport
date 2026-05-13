@@ -1,9 +1,9 @@
 namespace AndroidPackageExport.Core.Types;
 
-using AndroidPackageExport.Core.Types.ADB;
 using AndroidPackageExport.Core.Types.ADB.Wireless;
 using AndroidPackageExport.Core.Types.Versioning;
 using static AndroidPackageExport.Core.Helpers.InputHelper;
+using static AndroidPackageExport.Core.Types.ADB.Connection;
 
 public class Device(string Name = "Unknown", AndroidOSVersion AndroidOSVersion = AndroidOSVersion.UNKNOWN, string? ID = null) 
 {

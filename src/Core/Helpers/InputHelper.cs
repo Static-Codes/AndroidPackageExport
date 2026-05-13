@@ -1,8 +1,9 @@
-using AndroidPackageExport.Core.Types.ADB;
 using Spectre.Console;
 using System.Diagnostics.CodeAnalysis;
+using static AndroidPackageExport.Core.Types.ADB.Connection;
 using static AndroidPackageExport.Global.Constants;
 using static AndroidPackageExport.Global.Logging;
+
 
 namespace AndroidPackageExport.Core.Helpers;
 

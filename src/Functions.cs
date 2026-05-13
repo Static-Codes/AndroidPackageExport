@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using AndroidPackageExport.Core.Mappings;
 using AndroidPackageExport.Core.Types;
-using AndroidPackageExport.Core.Types.ADB;
 using AndroidPackageExport.Core.Types.ADB.Wireless;
 using AndroidPackageExport.Core.Types.Packaging;
 using static AndroidPackageExport.Core.Common.InputValidation;
 using static AndroidPackageExport.Core.Common.RegexPatterns;
 using static AndroidPackageExport.Core.Helpers.InputHelper;
 using static AndroidPackageExport.Core.Helpers.PSIHelper;
+using static AndroidPackageExport.Core.Types.ADB.Connection;
 using static AndroidPackageExport.Global.Constants;
 using static AndroidPackageExport.Global.Logging;
 

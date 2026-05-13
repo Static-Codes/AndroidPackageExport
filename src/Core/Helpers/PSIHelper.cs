@@ -1,7 +1,9 @@
 namespace AndroidPackageExport.Core.Helpers;
 
+using AndroidPackageExport.Core.Types;
 using System.Diagnostics;
 using static Global.Constants;
+using static Global.Logging;
 
 public class PSIHelper 
 {
@@ -11,6 +13,27 @@ public class PSIHelper
         return new() {
             FileName = "/bin/bash",
             Arguments = "-c \"ps aux | grep adb -L | grep -v grep\"",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+    }
+
+    public static ProcessStartInfo GetAndroidVersionPSI(Device device) 
+    {
+
+        if (device.ID == null) {
+            WriteErrorMessage(
+                message: "The associated Device object does not contain an Identifier.", 
+                exit: true, 
+                exitCode: 1
+            );
+        }
+
+        return new() {
+            FileName = ADBPath,
+            Arguments = $"shell -s {device.ID} getprop ro.build.version.release ",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
@@ -68,7 +91,7 @@ public class PSIHelper
     {
         return new()
         {
-            FileName = "adb",
+            FileName = ADBPath,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             UseShellExecute = false,
