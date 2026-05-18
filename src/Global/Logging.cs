@@ -19,7 +19,7 @@ internal static class Logging
         }
     }
 
-    public static void WriteInformation(string whiteText = "", string coloredText = "", string textColor = "blue", string tagName = InfoTag, string tagNameColor = "blue") 
+    public static void WriteInformation(string whiteText = "", string coloredText = "", string textColor = "blue", string tagName = InfoTag, string tagNameColor = "blue", bool reverse = false) 
     {
         string[] validColors = ["blue", "purple", "orange"];
 
@@ -35,7 +35,13 @@ internal static class Logging
         textColor = textColor == "orange" ? OrangeHex : textColor;
         tagNameColor = tagNameColor == "orange" ? OrangeHex : tagNameColor;
 
-        AnsiConsole.MarkupLine($"[{tagNameColor}]{tagName}[/] [{textColor}]{coloredText.EscapeMarkup()}[/] {whiteText.EscapeMarkup()}");
+        // If reverse is true, the white text comes after the blue text.
+        string message = reverse switch {
+            true => $"[{tagNameColor}]{tagName}[/] {whiteText.EscapeMarkup()}[{textColor}]{coloredText.EscapeMarkup()}[/]",
+            false => $"[{tagNameColor}]{tagName}[/] [{textColor}]{coloredText.EscapeMarkup()}[/] {whiteText.EscapeMarkup()}"
+            
+        }; 
+        AnsiConsole.MarkupLine(message);
     }
 
     public static void WriteStateMessage(string message) => AnsiConsole.MarkupLine($"[blue]{message}[/]");

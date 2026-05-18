@@ -1,11 +1,11 @@
+namespace AndroidPackageExport.Core.Helpers;
+
 using Spectre.Console;
 using System.Diagnostics.CodeAnalysis;
-using static AndroidPackageExport.Core.Types.ADB.Connection;
-using static AndroidPackageExport.Global.Constants;
-using static AndroidPackageExport.Global.Logging;
+using static Core.Types.ADB.Connection;
+using static Global.Constants;
+using static Global.Logging;
 
-
-namespace AndroidPackageExport.Core.Helpers;
 
 public static class InputHelper 
 {   

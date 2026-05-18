@@ -1,6 +1,6 @@
 namespace AndroidPackageExport.Core.Mappings;
 
-using AndroidPackageExport.Core.Types.Packaging;
+using Core.Types.Packaging;
 
 public struct PackageCategoryMapResult
 {

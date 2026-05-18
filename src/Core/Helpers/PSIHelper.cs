@@ -1,6 +1,6 @@
 namespace AndroidPackageExport.Core.Helpers;
 
-using AndroidPackageExport.Core.Types;
+using Core.Types;
 using System.Diagnostics;
 using static Global.Constants;
 using static Global.Logging;
@@ -45,7 +45,7 @@ public class PSIHelper
     {
         var psi = new ProcessStartInfo() {
             FileName = ADBPath,
-            Arguments = "devices",
+            Arguments = "devices -l",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             RedirectStandardInput = true,

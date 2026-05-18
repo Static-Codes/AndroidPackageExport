@@ -1,9 +1,9 @@
 namespace AndroidPackageExport.Core.Common;
 
-using AndroidPackageExport.Core.Types.ADB.Wireless;
+using Core.Types.ADB.Wireless;
 using System.Net;
-using static AndroidPackageExport.Core.Helpers.InputHelper;
-using static AndroidPackageExport.Global.Logging;
+using static Core.Helpers.InputHelper;
+using static Global.Logging;
 
 public class InputValidation 
 {
